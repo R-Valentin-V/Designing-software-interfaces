@@ -15,6 +15,7 @@ IS
                  decommission_date AS "Дата вывода из эксплуатации",
                  capacity AS "Вместимость (пассажиры)",
                  payload_capacity AS "Грузоподъемность (кг)",
+
                  usage_intensity AS "Интенсивность использования",
                  mileage AS "Пробег (км)",
                  repair_count AS "Количество ремонтов",
