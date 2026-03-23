@@ -1,0 +1,445 @@
+openapi: 3.0.3
+
+info:
+  title: Transport Server API
+  version: 1.0.0
+  description: |
+    API для получения данных о транспорте, водителях, маршрутах, ремонтах,
+    запчастях и сотрудниках. Сервер реализован на Spark Java и обращается к Oracle PL/SQL пакету PKG_TRANSPORT_INFO.
+
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+tags:
+  - name: Vehicles
+  - name: Drivers
+  - name: Garage
+  - name: Staff
+  - name: Reports
+  - name: Tables
+
+paths:
+  /vehicles:
+    get:
+      tags: [Vehicles]
+      summary: Получить список транспорта
+      operationId: getVehicles
+      responses:
+        '200':
+          description: Список транспорта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /driver-vehicle-distribution:
+    get:
+      tags: [Drivers]
+      summary: Получить распределение водителей по транспорту
+      operationId: getDriverVehicleDistribution
+      responses:
+        '200':
+          description: Распределение водителей по транспорту
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /vehicle-route-distribution:
+    get:
+      tags: [Vehicles]
+      summary: Получить распределение транспорта по маршрутам
+      operationId: getVehicleRouteDistribution
+      responses:
+        '200':
+          description: Распределение транспорта по маршрутам
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /staff-hierarchy:
+    get:
+      tags: [Staff]
+      summary: Получить иерархию сотрудников
+      operationId: getStaffHierarchy
+      responses:
+        '200':
+          description: Иерархия сотрудников
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /drivers/{vehicleId}:
+    get:
+      tags: [Drivers]
+      summary: Получить список водителей по ID транспорта
+      operationId: getDriversByVehicleId
+      parameters:
+        - name: vehicleId
+          in: path
+          required: true
+          description: ID транспортного средства
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Список водителей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректный vehicleId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /garage-info/{vehicleType}:
+    get:
+      tags: [Garage]
+      summary: Получить информацию о гараже по типу транспорта
+      operationId: getGarageInfo
+      parameters:
+        - name: vehicleType
+          in: path
+          required: true
+          description: Тип транспортного средства
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация о гараже
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /team-members/{name}:
+    get:
+      tags: [Staff]
+      summary: Получить членов команды по имени сотрудника
+      operationId: getTeamMembers
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Имя сотрудника
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список членов команды
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /table/{tableName}:
+    get:
+      tags: [Tables]
+      summary: Получить данные произвольной таблицы
+      description: |
+        Возвращает содержимое таблицы по имени. Этот endpoint потенциально опасен,
+        если имя таблицы не валидируется на сервере.
+      operationId: getTableData
+      parameters:
+        - name: tableName
+          in: path
+          required: true
+          description: Имя таблицы
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные таблицы
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+
+  /vehicle-mileage:
+    get:
+      tags: [Reports]
+      summary: Получить пробег транспорта
+      operationId: getVehicleMileage
+      parameters:
+        - name: vehicleType
+          in: query
+          required: true
+          description: Тип транспортного средства
+          schema:
+            type: string
+        - name: vehicleId
+          in: query
+          required: true
+          description: ID транспортного средства
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Информация о пробеге транспорта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /vehicle-purchase:
+    get:
+      tags: [Reports]
+      summary: Получить сведения о покупке и списании транспорта
+      operationId: getVehiclePurchaseAndDecommission
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Начальная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Конечная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Сведения о покупке и списании транспорта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные даты
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cargo-trips:
+    get:
+      tags: [Reports]
+      summary: Получить грузовые рейсы транспорта за период
+      operationId: getCargoTrips
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          description: ID транспортного средства
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: true
+          description: Начальная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Конечная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Список грузовых рейсов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /repair-info:
+    get:
+      tags: [Reports]
+      summary: Получить информацию о ремонтах
+      operationId: getRepairInfo
+      parameters:
+        - name: vehicleType
+          in: query
+          required: true
+          description: Тип транспортного средства
+          schema:
+            type: string
+        - name: brand
+          in: query
+          required: true
+          description: Марка транспортного средства
+          schema:
+            type: string
+        - name: vehicleId
+          in: query
+          required: true
+          description: ID транспортного средства
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: true
+          description: Начальная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Конечная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Информация о ремонтах
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /used-parts:
+    get:
+      tags: [Reports]
+      summary: Получить информацию об использованных запчастях
+      operationId: getUsedParts
+      parameters:
+        - name: vehicleType
+          in: query
+          required: true
+          description: Тип транспортного средства
+          schema:
+            type: string
+        - name: brand
+          in: query
+          required: true
+          description: Марка транспортного средства
+          schema:
+            type: string
+        - name: vehicleId
+          in: query
+          required: true
+          description: ID транспортного средства
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: true
+          description: Начальная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+        - name: partName
+          in: query
+          required: true
+          description: Название запчасти
+          schema:
+            type: string
+        - name: to
+          in: query
+          required: true
+          description: Конечная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Информация об использованных запчастях
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /staff-work-info:
+    get:
+      tags: [Staff]
+      summary: Получить информацию о работе сотрудника за период
+      operationId: getStaffWorkInfo
+      parameters:
+        - name: staffId
+          in: query
+          required: true
+          description: ID сотрудника
+          schema:
+            type: integer
+        - name: from
+          in: query
+          required: true
+          description: Начальная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          description: Конечная дата в формате YYYY-MM-DD
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Информация о работе сотрудника
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericRowsResponse'
+        '400':
+          description: Некорректные параметры
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    GenericRow:
+      type: object
+      description: |
+        Одна строка результата из Oracle REF CURSOR.
+        Набор полей заранее не фиксирован, потому что разные функции возвращают разные колонки.
+      additionalProperties: true
+      example:
+        VEHICLE_ID: 10
+        VEHICLE_TYPE: Bus
+        BRAND: Volvo
+
+    GenericRowsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/GenericRow'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid request parameters
+      required:
+        - error
