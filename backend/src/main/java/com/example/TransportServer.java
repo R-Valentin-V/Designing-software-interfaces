@@ -1,7 +1,6 @@
 package com.example;
 
 import static spark.Spark.*;
-
 import java.sql.*;
 import java.util.*;
 import java.sql.Date;
